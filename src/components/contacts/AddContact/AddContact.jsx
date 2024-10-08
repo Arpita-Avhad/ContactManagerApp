@@ -27,9 +27,10 @@ const AddContact = () => {
       try {
         const response = await ContactServices.getGroups();
         setGroups(response.data);
+        console.log("Groups fetched successfully:", response.data); // Debug
       } catch (error) {
         console.error("Error fetching groups:", error);
-        setErrorMessage("Error fetching groups");
+        setErrorMessage(`Error fetching groups: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -46,7 +47,7 @@ const AddContact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Optionally validate inputs here
+    // Validate inputs
     if (!contact.name || !contact.mobile || !contact.email || !contact.groupId) {
       setErrorMessage("Please fill all required fields.");
       return;
@@ -54,11 +55,12 @@ const AddContact = () => {
 
     setLoading(true);
     try {
-      await ContactServices.createContact(contact);
+      const createResponse = await ContactServices.createContact(contact);
+      console.log("Contact created successfully:", createResponse.data); // Debug
       navigate('/contacts/list'); // Redirect to contact list after successful creation
     } catch (error) {
       console.error("Error creating contact:", error);
-      setErrorMessage("Error creating contact");
+      setErrorMessage(`Error creating contact: ${error.message}`);
     } finally {
       setLoading(false);
     }
