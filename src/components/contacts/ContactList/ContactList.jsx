@@ -7,25 +7,22 @@ const ContactList = () => {
   const [loading, setLoading] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [groups, setGroups] = useState([]);
-  const [errorMessage, setErrorMessage] = useState('');
-
   const [searchTerm, setSearchTerm] = useState('');
   const [searchGroupName, setSearchGroupName] = useState('');
 
   useEffect(() => {
     const fetchContactsAndGroups = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
         const [contactsResponse, groupsResponse] = await Promise.all([
           ContactServices.getAllContacts(),
           ContactServices.getGroups()
         ]);
         setContacts(contactsResponse.data);
         setGroups(groupsResponse.data);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching contacts or groups:", error);
-        setErrorMessage(error.message || 'Data not found!');
+      } finally {
         setLoading(false);
       }
     };
@@ -40,42 +37,26 @@ const ContactList = () => {
     }, {});
   }, [groups]);
 
-  // Handle changes in search input fields
-  const handleSearchTermChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  const handleSearchTermChange = (e) => setSearchTerm(e.target.value);
+  const handleGroupNameChange = (e) => setSearchGroupName(e.target.value);
 
-  const handleGroupNameChange = (e) => {
-    setSearchGroupName(e.target.value);
-  };
-
-  // Handle search form submission
   const handleSearch = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      setLoading(true);
-      let filteredContacts = [];
+      let filteredContacts = searchGroupName 
+        ? await ContactServices.getContactsByGroupName(searchGroupName)
+        : await ContactServices.getAllContacts();
 
-      if (searchGroupName) {
-        // Fetch contacts by group name
-        filteredContacts = await ContactServices.getContactsByGroupName(searchGroupName);
-      } else {
-        // If no group is selected, fetch all contacts
-        const response = await ContactServices.getAllContacts();
-        filteredContacts = response.data;
-      }
-
-      // If a search term is provided, filter the contacts by name
       if (searchTerm) {
-        const regex = new RegExp(searchTerm, 'i'); // Case-insensitive
+        const regex = new RegExp(searchTerm, 'i');
         filteredContacts = filteredContacts.filter(contact => regex.test(contact.name));
       }
-
+      
       setContacts(filteredContacts);
-      setLoading(false);
     } catch (error) {
       console.error("Error searching contacts:", error);
-      setErrorMessage('Search failed!');
+    } finally {
       setLoading(false);
     }
   };
@@ -100,47 +81,52 @@ const ContactList = () => {
             </div>
 
             <div className="row">
-              <div className="col-md-6">
-                <form className="row" onSubmit={handleSearch}>
-                  <div className="col">
-                    <div className="mb-2">
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='Search Names'
-                        value={searchTerm}
-                        onChange={handleSearchTermChange}
-                      />
-                    </div>
-                  </div>
-                  <div className="col">
-                    <div className="mb-2">
-                      <select
-                        className='form-control'
-                        value={searchGroupName}
-                        onChange={handleGroupNameChange}
-                      >
-                        <option value="">Select Group</option>
-                        {groups.map(group => (
-                          <option key={group.id} value={group.name}>
-                            {group.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="col">
-                    <div className="mb-2">
-                      <input
-                        type='submit'
-                        className='btn btn-outline-dark'
-                        value="Search"
-                      />
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
+  <div className="col-md-6">
+    <form className="row" onSubmit={handleSearch}>
+      <div className="col">
+        <div className="mb-2">
+          <input
+            type='text'
+            className='form-control'
+            
+            placeholder='Search Names'
+            value={searchTerm}
+            onChange={handleSearchTermChange}
+          />
+        </div>
+      </div>
+      <div className="col">
+        <div className="mb-2">
+          <select
+            className='form-control'
+            value={searchGroupName}
+            onChange={handleGroupNameChange}
+          >
+            <option value="">Select a Group</option> {/* Placeholder option */}
+            {groups.map(group => (
+              <option key={group.id} value={group.name}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="col">
+        <div className="mb-2">
+          <input
+            type='submit'
+            className='btn btn-outline-dark'
+            value="Search"
+          />
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
           </div>
         </div>
       </section>
@@ -151,7 +137,6 @@ const ContactList = () => {
         <React.Fragment>
           <section className="contact-list">
             <div className="container">
-              {errorMessage && <p className="text-danger">{errorMessage}</p>}
               <div className="row">
                 {contacts.length > 0 ? contacts.map(contact => (
                   <div className="col-md-6" key={contact.id}>
@@ -208,11 +193,14 @@ const ContactList = () => {
                               title="Delete"
                               onClick={async () => {
                                 if (window.confirm(`Are you sure you want to delete ${contact.name}?`)) {
+                                  setLoading(true);
                                   try {
                                     await ContactServices.deleteContact(contact.id);
-                                    setContacts(prevContacts => prevContacts.filter(c => c.id !== contact.id));
+                                    setContacts(contacts.filter(c => c.id !== contact.id));
                                   } catch (error) {
-                                    setErrorMessage('Error deleting contact');
+                                    console.error("Error deleting contact:", error);
+                                  } finally {
+                                    setLoading(false);
                                   }
                                 }
                               }}
@@ -224,9 +212,10 @@ const ContactList = () => {
                       </div>
                     </div>
                   </div>
-                )) : <p className="text-center">No contacts found.</p>}
+                )) : (
+                  <p>No contacts available!</p>
+                )}
               </div>
-              {errorMessage && <p className="text-danger">{errorMessage}</p>}
             </div>
           </section>
         </React.Fragment>

@@ -1,18 +1,14 @@
-// src/components/Spinner/Spinner.jsx
+// src/components/Spinner/Spinner.js
 import React from 'react';
-import spinnerImg from '../../assets/img/Loading.gif';
+import './Spinner.css'; // Import the CSS file for styling
 
 const Spinner = () => {
-  return (
-    <React.Fragment>
-      <img 
-        src={spinnerImg} 
-        alt="Loading..." 
-        className="d-block m-auto" 
-        style={{ width: '100px' }}
-      />
-    </React.Fragment>
-  );
+    return (
+        <div className="spinner">
+            {/* You can customize this with any spinner graphics you prefer */}
+            <div className="loader"></div>
+        </div>
+    );
 };
 
 export default Spinner;

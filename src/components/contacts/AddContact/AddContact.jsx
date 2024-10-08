@@ -1,8 +1,23 @@
-// src/components/contacts/AddContact/AddContact.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ContactServices from '../../../services/ContactServices';
 import Spinner from '../../Spinner/Spinner';
+
+const InputField = ({ type, name, value, onChange, placeholder, pattern, title, required }) => (
+  <div className="mb-2">
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className='form-control'
+      placeholder={placeholder}
+      pattern={pattern}
+      title={title}
+      required={required}
+    />
+  </div>
+);
 
 const AddContact = () => {
   const navigate = useNavigate();
@@ -16,21 +31,21 @@ const AddContact = () => {
     company: "",
     groupId: "",
   });
-  const [groups, setGroups] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  // Fetch groups for the dropdown
+  const [groups, setGroups] = useState([{ id: "N/A", name: "N/A" }]);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     const fetchGroups = async () => {
-      setLoading(true);
       try {
         const response = await ContactServices.getGroups();
         setGroups(response.data);
-        console.log("Groups fetched successfully:", response.data); // Debug
+        console.log("Groups fetched successfully:", response.data);
       } catch (error) {
         console.error("Error fetching groups:", error);
-        setErrorMessage(`Error fetching groups: ${error.message}`);
+        setErrorMessage("Error fetching groups. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -47,22 +62,30 @@ const AddContact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate inputs
     if (!contact.name || !contact.mobile || !contact.email || !contact.groupId) {
       setErrorMessage("Please fill all required fields.");
       return;
     }
 
-    setLoading(true);
+    const mobileRegex = /^[0-9]{10}$/;
+    if (!mobileRegex.test(contact.mobile)) {
+      setErrorMessage("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    setSubmitting(true);
+    setErrorMessage("");
+
     try {
+      console.log("Contact data to be sent:", contact);
       const createResponse = await ContactServices.createContact(contact);
-      console.log("Contact created successfully:", createResponse.data); // Debug
-      navigate('/contacts/list'); // Redirect to contact list after successful creation
+      console.log("Contact created successfully:", createResponse.data);
+      navigate('/contacts/list');
     } catch (error) {
-      console.error("Error creating contact:", error);
-      setErrorMessage(`Error creating contact: ${error.message}`);
+      console.error("Error creating contact:", error.response ? error.response.data : error);
+      setErrorMessage("Error creating contact. Please try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -73,7 +96,7 @@ const AddContact = () => {
           <div className="col">
             <p className='fw-bold h4 text-primary'>Add Contact</p>
             <p className='fst-italic'>
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quo, sint in ut facere molestias enim?
+              Build your network, one contact at a time!
             </p>
           </div>
         </div>
@@ -91,6 +114,7 @@ const AddContact = () => {
                     value={contact.name}
                     onChange={handleChange}
                     placeholder="Name"
+                    required
                   />
                   <InputField
                     type="text"
@@ -140,15 +164,19 @@ const AddContact = () => {
                       required
                     >
                       <option value="">Select a Group</option>
-                      {groups.map((group) => (
-                        <option key={group.id} value={group.id}>
-                          {group.name}
-                        </option>
-                      ))}
+                      {groups.length === 0 ? (
+                        <option value="N/A">N/A</option>
+                      ) : (
+                        groups.map((group) => (
+                          <option key={group.id} value={group.id}>
+                            {group.name}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
                   <div className="mb-2">
-                    <input type='submit' className='btn btn-primary' value="Add" />
+                    <input type='submit' className='btn btn-primary' value={submitting ? "Adding..." : "Add"} disabled={submitting} />
                     <Link to='/contacts/list' className='btn btn-dark ms-2'>
                       Cancel
                     </Link>
@@ -170,22 +198,5 @@ const AddContact = () => {
     </section>
   );
 };
-
-// InputField Component
-const InputField = ({ type, name, value, onChange, placeholder, pattern, title, required }) => (
-  <div className="mb-2">
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      className='form-control'
-      placeholder={placeholder}
-      pattern={pattern}
-      title={title}
-      required={required}
-    />
-  </div>
-);
 
 export default AddContact;

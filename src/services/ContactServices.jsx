@@ -1,66 +1,102 @@
 import axios from 'axios';
 
-  class ContactServices {
+class ContactServices {
   static serverUrl = "http://localhost:7000";
-  static getGroups() {
+
+  static async getGroups() {
     const dataUrl = `${this.serverUrl}/groups`;
-    return axios.get(dataUrl);
+    return await axios.get(dataUrl);
   }
-  static getGroup(groupId) {
+
+  static async getGroup(groupId) {
     const dataUrl = `${this.serverUrl}/groups/${groupId}`;
-    return axios.get(dataUrl);
+    return await axios.get(dataUrl);
   }
-  static getGroupsByName(Name) {
+
+  static async getGroupsByName(name) {
     const dataUrl = `${this.serverUrl}/groups`;
-    return axios.get(dataUrl, { params: { name: Name } });
+    return await axios.get(dataUrl, { params: { name } });
   }
-  static getAllContacts() {
+
+  static async getAllContacts() {
     const dataUrl = `${this.serverUrl}/contacts`;
-    return axios.get(dataUrl);
+    return await axios.get(dataUrl);
   }
-  static getContact(contactId) {
+
+  static async getContact(contactId) {
     const dataUrl = `${this.serverUrl}/contacts/${contactId}`;
-    return axios.get(dataUrl);
+    return await axios.get(dataUrl);
   }
-  static createContact(contact) {
+
+  static async createContact(contact) {
     const dataUrl = `${this.serverUrl}/contacts`;
-    return axios.post(dataUrl, contact);
+    try {
+      const response = await axios.post(dataUrl, contact);
+      return response.data; // Return response data on success
+    } catch (error) {
+      console.error("Error creating contact:", error.response ? error.response.data : error.message);
+      throw error; // Rethrow for further handling
+    }
   }
-  static updateContact(contactId, contact) {
+
+  static async updateContact(contactId, contact) {
     const dataUrl = `${this.serverUrl}/contacts/${contactId}`;
-    return axios.put(dataUrl, contact);
+    try {
+      const response = await axios.put(dataUrl, contact);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating contact:", error.response ? error.response.data : error.message);
+      throw error;
+    }
   }
-  static patchContact(contactId, updatedFields) {
+
+  static async patchContact(contactId, updatedFields) {
     const dataUrl = `${this.serverUrl}/contacts/${contactId}`;
-    return axios.patch(dataUrl, updatedFields);
+    try {
+      const response = await axios.patch(dataUrl, updatedFields);
+      return response.data;
+    } catch (error) {
+      console.error("Error patching contact:", error.response ? error.response.data : error.message);
+      throw error;
+    }
   }
-  static deleteContact(contactId) {
+
+  static async deleteContact(contactId) {
     const dataUrl = `${this.serverUrl}/contacts/${contactId}`;
-    return axios.delete(dataUrl);
+    try {
+      const response = await axios.delete(dataUrl);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting contact:", error.response ? error.response.data : error.message);
+      throw error;
+    }
   }
-  static searchContacts(searchTerm, groupId) {
+
+  static async searchContacts(searchTerm, groupId) {
     const params = {};
     if (searchTerm) params.name_like = searchTerm;
     if (groupId) params.groupId = groupId;
     const dataUrl = `${this.serverUrl}/contacts`;
-    return axios.get(dataUrl, { params });
+    return await axios.get(dataUrl, { params });
   }
+
   static async getContactsByGroupName(groupName) {
     try {
       const groupResponse = await this.getGroupsByName(groupName);
       const groups = groupResponse.data;
       if (groups.length === 0) {
-        return [];
+        return []; // No groups found, return empty array.
       }
+
       const groupId = groups[0].id;
-      const contactsResponse = await this.getAllContacts();
-      const contacts = contactsResponse.data;
-      const filteredContacts = contacts.filter(contact => contact.groupId === groupId);
-      return filteredContacts;
+      const contactsResponse = await this.searchContacts(null, groupId);
+      return contactsResponse.data;
+
     } catch (error) {
       console.error("Error fetching contacts by group name:", error);
-      throw error; 
+      throw error; // Rethrow the error for further handling
     }
   }
 }
+
 export default ContactServices;
