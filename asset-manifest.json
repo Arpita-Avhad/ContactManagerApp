@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/ContactManagerApp/static/css/main.288a2636.css",
-    "main.js": "/ContactManagerApp/static/js/main.5cd626e3.js",
+    "main.js": "/ContactManagerApp/static/js/main.d1261eb4.js",
     "static/js/453.5cc2a882.chunk.js": "/ContactManagerApp/static/js/453.5cc2a882.chunk.js",
     "static/media/fa-solid-900.svg": "/ContactManagerApp/static/media/fa-solid-900.7a8b4f130182d19a2d7c.svg",
     "static/media/fa-brands-400.svg": "/ContactManagerApp/static/media/fa-brands-400.2f517e09eb2ca6650ff5.svg",
@@ -21,11 +21,11 @@
     "static/media/fa-regular-400.woff2": "/ContactManagerApp/static/media/fa-regular-400.7a3337626410ca2f4071.woff2",
     "index.html": "/ContactManagerApp/index.html",
     "main.288a2636.css.map": "/ContactManagerApp/static/css/main.288a2636.css.map",
-    "main.5cd626e3.js.map": "/ContactManagerApp/static/js/main.5cd626e3.js.map",
+    "main.d1261eb4.js.map": "/ContactManagerApp/static/js/main.d1261eb4.js.map",
     "453.5cc2a882.chunk.js.map": "/ContactManagerApp/static/js/453.5cc2a882.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.288a2636.css",
-    "static/js/main.5cd626e3.js"
+    "static/js/main.d1261eb4.js"
   ]
 }
